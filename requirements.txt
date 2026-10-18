@@ -1,0 +1,3 @@
+hidapi
+vgamepad
+PySide6-Essentials

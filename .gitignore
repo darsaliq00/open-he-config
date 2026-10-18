@@ -1,0 +1,16 @@
+.venv/
+build/
+dist/
+release/
+__pycache__/
+calibration.json
+settings.json
+
+# vendor firmware dumps are RK's, not ours to publish
+*.bin
+# per-user data written next to the apps
+macros.json
+effects.json
+profiles/*
+!profiles/Racing.json
+*.log
