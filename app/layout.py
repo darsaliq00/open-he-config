@@ -72,5 +72,27 @@ def slot_of(label: str) -> int:
     return next(s for s, k in KEYS.items() if k["label"] == label)
 
 
+def for_model(profile: dict) -> dict:
+    """Return profile with its slots moved to the keyboard plugged in.
+
+    Slot ids differ between keyboards (W is 44 on the M75, 34 on the AK680), so
+    a profile records the model it was made on; profiles without one come from
+    the M75. Keys are matched by scan code, and bindings for keys this keyboard
+    lacks are dropped.
+    """
+    src = profile.get("model", "m75")
+    if src == MODEL:
+        return profile
+    src_rows = AK680_ROWS if src == "ak680" else M75_ROWS
+    scan_of = {k[0]: k[3] for row in src_rows for k in row if k}
+    slot_by_scan = {k["scan"]: s for s, k in KEYS.items() if k["scan"]}
+    bindings = []
+    for b in profile.get("bindings", []):
+        slot = slot_by_scan.get(scan_of.get(b["slot"]))
+        if slot is not None:
+            bindings.append({**b, "slot": slot})
+    return {**profile, "model": MODEL, "bindings": bindings}
+
+
 def for_ui() -> list[list[dict]]:
     return [[({"gap": 0.5} if k is None else {"slot": k[0], "label": k[1], "w": k[2]}) for k in row] for row in ROWS]
