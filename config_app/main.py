@@ -1,4 +1,4 @@
-"""Entry point of M75 Config, the keyboard settings app (separate from Analog Drive)."""
+"""Entry point of M75 Config, the RK keyboard settings app."""
 
 import sys
 from pathlib import Path

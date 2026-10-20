@@ -1,8 +1,8 @@
 """HID link to the keyboard's config interface, for the standalone config app.
 
 Each process gets its own copy of every input report on Windows, so this can
-run next to Analog Drive: replies are matched by command byte, and closing it
-does not send the diagnostic stop that Analog Drive's own reader sends.
+run next to other apps that read the keyboard: replies are matched by command byte, and
+closing it does not send a diagnostic stop.
 """
 
 import threading
