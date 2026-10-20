@@ -63,6 +63,13 @@ def _detect() -> str:
     return "ak680" if ajazz and not rk else "m75"
 
 
+def keys_of(rows) -> dict[int, dict]:
+    return {k[0]: {"slot": k[0], "label": k[1], "w": k[2], "scan": k[3]} for row in rows for k in row if k}
+
+
+M75_KEYS = keys_of(M75_ROWS)
+AK680_KEYS = keys_of(AK680_ROWS)
+
 MODEL = _detect()
 ROWS = AK680_ROWS if MODEL == "ak680" else M75_ROWS
 KEYS = {k[0]: {"slot": k[0], "label": k[1], "w": k[2], "scan": k[3]} for row in ROWS for k in row if k}

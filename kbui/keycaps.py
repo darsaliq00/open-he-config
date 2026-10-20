@@ -1,9 +1,8 @@
 """Keyboard map drawn as light keycaps with tag badges, for the light theme."""
 
-from PySide6.QtCore import QRectF, Qt
+from PySide6.QtCore import QRectF, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPen
-
-from app.widgets import KeyboardView
+from PySide6.QtWidgets import QWidget
 
 from . import theme
 
@@ -25,12 +24,61 @@ def _font(size, bold=False):
     return f
 
 
-class KeycapView(KeyboardView):
-    UNIT, GAP, ROW_GAP, SPACER = 46, 4, 6, 16
+class KeycapView(QWidget):
+    """rows: list of rows of (slot, label, width in units, scan code) or None for a gap."""
 
-    def __init__(self):
+    selected = Signal(int)
+    UNIT, GAP, ROW_GAP, SPACER, PAD = 46, 4, 6, 16, 12
+
+    def __init__(self, rows):
         super().__init__()
-        self.setFixedSize(self._size.width() + 24, self._size.height() + 24)
+        self.depth: dict[int, float] = {}
+        self.targets: dict[int, str] = {}       # tag badge per key
+        self.swatches: dict[int, QColor] = {}   # colour strip per key
+        self.leds: dict[int, QColor] = {}       # lit key face (lighting preview)
+        self.current: int | None = None
+        self.selection: set[int] = set()
+        self.rects: list[tuple[int, str, QRectF]] = []
+        self._row_of: dict[int, int] = {}
+        y = 1.0
+        for r, row in enumerate(rows):
+            x = 1.0
+            for k in row:
+                if k is None:
+                    x += self.SPACER
+                    continue
+                slot, text, w = k[0], k[1], k[2]
+                width = w * self.UNIT + (w - 1) * self.GAP
+                self.rects.append((slot, text, QRectF(x, y, width, self.UNIT)))
+                self._row_of[slot] = r
+                x += width + self.GAP
+            y += self.UNIT + self.ROW_GAP + (6 if r == 0 and len(rows) > 5 else 0)
+        size = QSize(int(max(rc.right() for *_, rc in self.rects)) + 2, int(y))
+        self.setFixedSize(size.width() + 2 * self.PAD, size.height() + 2 * self.PAD)
+        self.setCursor(Qt.PointingHandCursor)
+
+    def _set(self, name, value):
+        if getattr(self, name) != value:
+            setattr(self, name, value)
+            self.update()
+
+    def set_depth(self, depth):
+        self._set("depth", depth)
+
+    def set_targets(self, targets):
+        self._set("targets", targets)
+
+    def set_swatches(self, swatches):
+        self._set("swatches", swatches)
+
+    def set_leds(self, leds):
+        self._set("leds", leds)
+
+    def set_current(self, slot):
+        self._set("current", slot)
+
+    def set_selection(self, slots):
+        self._set("selection", set(slots))
 
     def paintEvent(self, _):
         p = QPainter(self)
@@ -38,7 +86,7 @@ class KeycapView(KeyboardView):
         p.setPen(Qt.NoPen)
         p.setBrush(BED)
         p.drawRoundedRect(QRectF(0, 0, self.width(), self.height()), 10, 10)
-        p.translate(12, 12)
+        p.translate(self.PAD, self.PAD)
         label_font, badge_font = _font(8.5), _font(6.5, True)
         for slot, label, r in self.rects:
             d = self.depth.get(slot, 0.0)
@@ -85,12 +133,13 @@ class KeycapView(KeyboardView):
 
     def mousePressEvent(self, e):
         pos = e.position()
-        pos.setX(pos.x() - 12)
-        pos.setY(pos.y() - 12)
+        pos.setX(pos.x() - self.PAD)
+        pos.setY(pos.y() - self.PAD)
         for slot, _, r in self.rects:
             if r.contains(pos):
                 self.selected.emit(slot)
                 return
 
-    def key_centres(self):
-        return {s: (x + 12, y + 12, row) for s, (x, y, row) in super().key_centres().items()}
+    def key_centres(self) -> dict[int, tuple[float, float, int]]:
+        """slot -> (x, y, row) of each key's centre, for effects that move across the board."""
+        return {s: (r.center().x() + self.PAD, r.center().y() + self.PAD, self._row_of[s]) for s, _, r in self.rects}

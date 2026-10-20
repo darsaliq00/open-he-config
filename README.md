@@ -61,7 +61,11 @@ Needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`) for the installer ste
 - `app/device_ajazz.py` – AJAZZ AK680 V2 travel stream reader
 - `app/layout.py` – key layouts for both keyboards, picks the connected one
 - `app/protocol.py`, `app/kbconfig.py` – RK M75 HE configuration protocol (used by M75 Config)
-- `config_app/` – M75 Config window, panels, lighting preview
+- `config_app/` – M75 Config window and panels (`run_config.py`, `build_config.bat`)
+- `ajazz_config/` – AJAZZ Config for the AK680 V2 (`run_ajazz_config.py`, `build_ajazz_config.bat`);
+  so far device info and live Key Test, settings sections still to build and test on the keyboard
+- `kbui/` – UI shared by both config apps: light theme, keycap keyboard view, lighting preview,
+  small widgets
 - `tests/` – offline tests: `python -m unittest discover tests`
 - `app/engine.py` – calibration, deadzone, curve, smoothing, mixing, virtual pad output
 - `app/blocker.py` – low-level keyboard hook for blocking bound keys and the hotkey

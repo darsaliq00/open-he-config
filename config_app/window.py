@@ -11,13 +11,13 @@ from PySide6.QtWidgets import (
 
 from app import protocol as p
 from app.kbconfig import ReadError, read_settings, write_keys
-from app.layout import KEYS
-from app.ui import label, rule
+from app.layout import M75_KEYS as KEYS, M75_ROWS
+from kbui.widgets import card, label, rule
 
-from . import theme
+from kbui import theme
 from .advanced import AdvancedPanel
-from .keycaps import KeycapView
-from .lightfx import LightSim
+from kbui.keycaps import KeycapView
+from kbui.lightfx import LightSim
 from .link import Link
 from .panels import LightingPanel, PerformancePanel, RemapPanel, SystemPanel
 
@@ -54,15 +54,6 @@ class KeyEater(QObject):
 class Bridge(QObject):
     """Results from worker threads, delivered on the UI thread."""
     done = Signal(object, object)   # (callback, result or exception)
-
-
-def card() -> tuple[QFrame, QVBoxLayout]:
-    f = QFrame()
-    f.setObjectName("card")
-    v = QVBoxLayout(f)
-    v.setContentsMargins(18, 16, 18, 16)
-    v.setSpacing(10)
-    return f, v
 
 
 class ConfigWindow(QMainWindow):
@@ -199,7 +190,7 @@ class ConfigWindow(QMainWindow):
             b.clicked.connect(fn)
             h.addWidget(b)
         v.addLayout(h)
-        self.board = KeycapView()
+        self.board = KeycapView(M75_ROWS)
         self.board.selected.connect(self._clicked)
         self.sim = LightSim(self.board.key_centres())
         self._down: set[int] = set()

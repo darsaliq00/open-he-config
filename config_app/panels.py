@@ -10,10 +10,10 @@ from PySide6.QtWidgets import (
 
 from app import protocol as p
 from app.kbconfig import write_global, write_key_colors, write_keys, write_lighting, write_order, write_polling
-from app.layout import KEYS
-from app.ui import SliderRow, label, restyle, rule
+from app.layout import M75_KEYS as KEYS
+from kbui.widgets import SliderRow, label, restyle, rule
 
-from .lightfx import STYLES
+from kbui.lightfx import STYLES
 
 TOUCH_NOTES = {
     "global": "Fires at the global actuation ({g:g} mm); the key's own actuation is unused.",
