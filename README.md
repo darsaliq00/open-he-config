@@ -56,5 +56,6 @@ To build the app, run `build_config.bat`. It creates `release\M75Config.exe`.
 
 ## License
 
-MIT, see `LICENSE`. RK Keyboard Software and its board data belong to RK and are not part of
+GPL-3.0 or later, see `LICENSE`. You may use, change and share it; versions you share must
+stay under the GPL with their source available. RK Keyboard Software and its board data belong to RK and are not part of
 this repository.
