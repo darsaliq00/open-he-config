@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 
 from app import protocol as p
 from app.kbconfig import read_advanced, write_advanced, write_keys, write_socd
-from app.layout import M75_KEYS as KEYS
+from app.layout import RK_KEYS as KEYS
 from kbui.widgets import SliderRow, label, rule
 
 from .panels import Panel, row

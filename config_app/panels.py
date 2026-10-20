@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 
 from app import protocol as p
 from app.kbconfig import write_global, write_key_colors, write_keys, write_lighting, write_order, write_polling
-from app.layout import M75_KEYS as KEYS
+from app.layout import RK_KEYS as KEYS
 from kbui.widgets import SliderRow, label, restyle, rule
 
 from kbui.lightfx import STYLES

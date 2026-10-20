@@ -11,14 +11,14 @@ from PySide6.QtWidgets import (
 
 from app import protocol as p
 from app.kbconfig import ReadError, read_settings, write_keys
-from app.layout import M75_KEYS as KEYS, M75_ROWS
+from app.layout import RK_KEYS as KEYS, RK_ROWS
 from kbui.widgets import card, label, rule
 
 from kbui import theme
 from .advanced import AdvancedPanel
 from kbui.keycaps import KeycapView
 from kbui.lightfx import LightSim
-from .link import Link
+from .link import TESTED_PID, Link
 from .panels import LightingPanel, PerformancePanel, RemapPanel, SystemPanel
 
 FULL_TRAVEL_UM = 3300
@@ -190,7 +190,7 @@ class ConfigWindow(QMainWindow):
             b.clicked.connect(fn)
             h.addWidget(b)
         v.addLayout(h)
-        self.board = KeycapView(M75_ROWS)
+        self.board = KeycapView(RK_ROWS)
         self.board.selected.connect(self._clicked)
         self.sim = LightSim(self.board.key_centres())
         self._down: set[int] = set()
@@ -333,6 +333,22 @@ class ConfigWindow(QMainWindow):
         self.dev_info.setText(f"SN: {result['serial']}\n{result['firmware']} · protocol {result['protocol']}")
         self._set_enabled(True)
         self.refresh()
+        self._check_tested(result)
+
+    def _check_tested(self, result):
+        """Boards other than the M75 HE on protocol 1.0.7 were never tested: ask once before any write."""
+        tested = self.link.pid == TESTED_PID and result["protocol"] == "1.0.7"
+        if tested or getattr(self, "_asked_writes", False):
+            return
+        self._asked_writes = True
+        allow = self.ask(f"{result['name']} (USB id {self.link.pid:04X}, protocol {result['protocol']}) has not "
+                         "been tested with this app; it was built on an RK M75 HE with protocol 1.0.7.\n\n"
+                         "Reading is safe. Writing settings might be sent in a format this keyboard does not "
+                         "expect. A factory reset from the keyboard fixes a bad setting.\n\n"
+                         "Allow writing settings to this keyboard?")
+        self.link.allow_writes = allow
+        if not allow:
+            self.dev_info.setText(self.dev_info.text() + "\nRead-only: writes are off for this model.")
 
     def _switch_config(self, index: int):
         if not self.settings or index == self.settings["system"].get("config"):

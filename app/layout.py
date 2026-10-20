@@ -1,20 +1,22 @@
 """Physical layouts: matrix slot, label, key width (units), scan code.
 
-Supports the RK M75 HE (default) and the AJAZZ AK680 V2; the one plugged in
-is picked when this module is first imported.
+Supports the RK M75 HE (hand-made layout), every other RK board in RK's web
+driver list (drawn from the key map the keyboard reports) and the AJAZZ AK680
+V2. The keyboard plugged in is picked when this module is first imported.
 
-M75: 
-Slot = row * 21 + column. Skipped slots (75, 85, 108-110, ...) are ISO or
+M75: slot = row * 21 + column. Skipped slots (75, 85, 108-110, ...) are ISO or
 unused matrix positions; the bottom three rows were verified by pressing each
 key. Scan codes are PS/2 set 1; 0xE0xx marks an extended key. They let the key
 blocker recognise which physical key Windows reports.
 """
 
+import time
+
 M75_ROWS = [
     [(0, "Esc", 1, 0x01), None, (1, "F1", 1, 0x3B), (2, "F2", 1, 0x3C), (3, "F3", 1, 0x3D), (4, "F4", 1, 0x3E), None,
      (5, "F5", 1, 0x3F), (6, "F6", 1, 0x40), (7, "F7", 1, 0x41), (8, "F8", 1, 0x42), None,
      (9, "F9", 1, 0x43), (10, "F10", 1, 0x44), (11, "F11", 1, 0x57), (12, "F12", 1, 0x58), None,
-     (13, "Prt", 1, 0xE037), (14, "Del", 1, 0xE053)],
+     (13, "Del", 1, 0xE053)],
     [(21, "`", 1, 0x29), (22, "1", 1, 0x02), (23, "2", 1, 0x03), (24, "3", 1, 0x04), (25, "4", 1, 0x05),
      (26, "5", 1, 0x06), (27, "6", 1, 0x07), (28, "7", 1, 0x08), (29, "8", 1, 0x09), (30, "9", 1, 0x0A),
      (31, "0", 1, 0x0B), (32, "-", 1, 0x0C), (33, "=", 1, 0x0D), (34, "Bksp", 2, 0x0E), (35, "Home", 1, 0xE047)],
@@ -52,15 +54,74 @@ AK680_ROWS = [
 ]
 
 
-def _detect() -> str:
-    """'ak680' when an AJAZZ AK680 V2 is plugged in and no RK M75 HE is, else 'm75'."""
+def rk_rows_from_keyboard(path: bytes) -> list[list[tuple]] | None:
+    """Rows built from the key map an RK keyboard reports (row, column, key code per key).
+
+    Slot = row * 21 + column, the same matrix numbering the M75 uses, so the
+    diagnostic ADC pages line up. Labels, scan codes and widths come from the
+    key codes; physical gaps between key groups are not reported, so none are drawn.
+    """
     try:
         import hid
-        rk = any(d["usage_page"] == 0xFFA0 for d in hid.enumerate(0x1CA2, 0x160A))
-        ajazz = any(d["usage_page"] == 0xFF68 for d in hid.enumerate(0x0C45, 0x80BC))
+
+        from . import protocol as p
+        dev = hid.device()
+        dev.open_path(path)
+        try:
+            dev.set_nonblocking(True)
+            keys = []
+            for rows in ((0, 1), (2, 3), (4, 5)):
+                while dev.read(64):
+                    pass
+                dev.write([0, *p.req_key_map(*rows)])
+                reply, end = None, time.perf_counter() + 0.3
+                while time.perf_counter() < end and reply is None:
+                    r = dev.read(64)
+                    if r and r[0] == p.HEADER and r[2] == p.CMD_DEFKEY | 0x80:
+                        reply = bytes(r[4:])
+                    elif not r:
+                        time.sleep(0.001)
+                if reply is None:
+                    return None
+                keys += p.parse_key_map(reply)
+        finally:
+            dev.close()
     except Exception:
-        return "m75"
-    return "ak680" if ajazz and not rk else "m75"
+        return None
+    out = []
+    for row in range(6):
+        cells = sorted((col, code) for r, col, code in keys if r == row)
+        if cells:
+            out.append([(row * 21 + col, *_cell(code)) for col, code in cells])
+    return out or None
+
+
+def _cell(code: int) -> tuple:
+    from .keycodes import describe
+    label, scan, width = describe(code)
+    return label, width, scan
+
+
+def _detect() -> tuple[str, list | None]:
+    """('m75' | 'rk:<pid>' | 'ak680', rows built from the keyboard for other RK boards).
+
+    The RK M75 HE keeps its hand-made layout; any other RK board in RK's list is
+    drawn from its own key map. The AJAZZ AK680 V2 is used only if no RK board is in.
+    """
+    try:
+        import hid
+
+        from .device import PID, find
+        rk = find()
+        if rk:
+            if rk[1] == PID:
+                return "m75", None
+            return f"rk:{rk[1]:04x}", rk_rows_from_keyboard(rk[0])
+        if any(d["usage_page"] == 0xFF68 for d in hid.enumerate(0x0C45, 0x80BC)):
+            return "ak680", None
+    except Exception:
+        pass
+    return "m75", None
 
 
 def keys_of(rows) -> dict[int, dict]:
@@ -70,9 +131,14 @@ def keys_of(rows) -> dict[int, dict]:
 M75_KEYS = keys_of(M75_ROWS)
 AK680_KEYS = keys_of(AK680_ROWS)
 
-MODEL = _detect()
-ROWS = AK680_ROWS if MODEL == "ak680" else M75_ROWS
-KEYS = {k[0]: {"slot": k[0], "label": k[1], "w": k[2], "scan": k[3]} for row in ROWS for k in row if k}
+MODEL, _built = _detect()
+if MODEL.startswith("rk:") and not _built:
+    MODEL = "m75"   # could not read the key map; the M75 layout is the closest guess
+# layout of the RK board plugged in (M75 Config uses this whatever Analog Drive detects)
+RK_ROWS = _built or M75_ROWS
+RK_KEYS = keys_of(RK_ROWS)
+ROWS = AK680_ROWS if MODEL == "ak680" else RK_ROWS
+KEYS = keys_of(ROWS)
 
 
 def slot_of(label: str) -> int:
@@ -90,12 +156,13 @@ def for_model(profile: dict) -> dict:
     src = profile.get("model", "m75")
     if src == MODEL:
         return profile
-    src_rows = AK680_ROWS if src == "ak680" else M75_ROWS
-    scan_of = {k[0]: k[3] for row in src_rows for k in row if k}
+    # other RK boards are not known here; their bindings carry the scan code instead
+    src_rows = {"ak680": AK680_ROWS, "m75": M75_ROWS}.get(src)
+    scan_of = {k[0]: k[3] for row in src_rows for k in row if k} if src_rows else {}
     slot_by_scan = {k["scan"]: s for s, k in KEYS.items() if k["scan"]}
     bindings = []
     for b in profile.get("bindings", []):
-        slot = slot_by_scan.get(scan_of.get(b["slot"]))
+        slot = slot_by_scan.get(b.get("scan") or scan_of.get(b["slot"]))
         if slot is not None:
             bindings.append({**b, "slot": slot})
     return {**profile, "model": MODEL, "bindings": bindings}

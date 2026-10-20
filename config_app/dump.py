@@ -4,7 +4,7 @@ Sends only read requests; nothing is written to the keyboard.
 """
 
 from app.kbconfig import read_settings
-from app.layout import M75_KEYS as KEYS
+from app.layout import RK_KEYS as KEYS
 
 from .link import Link
 

@@ -12,7 +12,8 @@ import time
 import hid
 
 VID = 0x1CA2
-PID = 0x160A
+PID = 0x160A                       # RK M75 HE, the board this was built and tested on
+PIDS = range(0x1601, 0x161C)       # every RK board RK's web driver lists (same SparkLink protocol)
 USAGE_PAGE = 0xFFA0
 USAGE = 1
 
@@ -31,11 +32,16 @@ def _packet(data_type: int, page: int) -> list[int]:
     return p
 
 
+def find() -> tuple[bytes, int] | None:
+    """(HID path, product id) of the first RK keyboard's config interface, the M75 HE first."""
+    found = [(d["product_id"] != PID, d["path"], d["product_id"]) for d in hid.enumerate(VID, 0)
+             if d["product_id"] in PIDS and d["usage_page"] == USAGE_PAGE and d["usage"] == USAGE]
+    return min(found)[1:] if found else None
+
+
 def find_path() -> bytes | None:
-    for d in hid.enumerate(VID, PID):
-        if d["usage_page"] == USAGE_PAGE and d["usage"] == USAGE:
-            return d["path"]
-    return None
+    hit = find()
+    return hit[0] if hit else None
 
 
 class Keyboard:

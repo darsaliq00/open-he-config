@@ -1,6 +1,8 @@
 # Analog Drive
 
 Turns the Hall effect switches of an RK M75 HE into a virtual Xbox 360 controller.
+Any RK board listed by RK's web driver (USB 1CA2:1601-161B) is detected; boards other than the
+M75 HE are drawn from the key map the keyboard reports and have not been tested.
 Press W a little and the car accelerates a little; press it fully for full throttle.
 
 Also supports the AJAZZ AK680 V2 (detected automatically). That path reads the keyboard's
@@ -9,7 +11,8 @@ travel-test stream and has not been tested on real hardware yet.
 The repository also contains **M75 Config** (`config_app/`, `run_config.py`), a separate
 desktop app that configures the RK M75 HE itself: actuation, rapid trigger, deadzones,
 remapping, lighting, advanced keys (DKS, multi-point, mod-tap, toggle, END, SOCD, rappy
-snappy, macros), onboard configs 1-4, polling rate and calibration. Build it with
+snappy, macros), onboard configs 1-4, polling rate and calibration. Other RK boards from RK's list
+work read-only until you allow writes for that untested model. Build it with
 `build_config.bat` into `release/M75Config.exe`.
 
 ## Run

@@ -11,12 +11,35 @@ import time
 import hid
 
 from app import protocol as p
-from app.device import find_path
+from app.device import PID, find
+from app.kbconfig import ReadError
+
+TESTED_PID = PID   # the RK M75 HE; every write path was checked on it
+
+# CMD_INFO orders that act on their own (save, calibrate, reset, switch OS mode); other orders
+# only change something when they carry a value (e.g. polling rate, config slot, top dead switch)
+ACTION_ORDERS = {2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 48, 49, 50, 51}
+
+
+class WriteBlocked(ReadError):
+    pass
+
+
+def is_write(report: bytes) -> bool:
+    cmd = report[2]
+    if cmd in (p.CMD_SYNC, p.CMD_RM6X21):
+        return False
+    if cmd == p.CMD_INFO:
+        order = report[4]
+        return order in ACTION_ORDERS or report[1] > 3   # report[1] = payload length
+    return report[4] == 1
 
 
 class Link:
     def __init__(self):
         self.dev = None
+        self.pid = None
+        self.allow_writes = True   # switched off for boards nobody has tested yet
         self.lock = threading.Lock()
 
     @property
@@ -27,9 +50,10 @@ class Link:
         with self.lock:
             if self.dev:
                 return True
-            path = find_path()
-            if not path:
+            hit = find()
+            if not hit:
                 return False
+            path, self.pid = hit
             try:
                 dev = hid.device()
                 dev.open_path(path)
@@ -73,6 +97,8 @@ class Link:
 
     def request(self, report: bytes, timeout: float = 0.2) -> bytes | None:
         """Send one config report and return the reply payload (byte 4 on), or None."""
+        if not self.allow_writes and is_write(report):
+            raise WriteBlocked("writes are off for this keyboard model until you allow them")
         with self.lock:
             if not self.dev:
                 return None
