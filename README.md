@@ -53,3 +53,8 @@ To build the app, run `build_config.bat`. It creates `release\M75Config.exe`.
 - `kbui/`: theme, keycap view, lighting preview, widgets
 - `tests/`: offline tests, run with `python -m unittest discover tests`. The non-HE board-data
   tests also run when `RK_SOFTWARE_DIR` points to RK's software folder.
+
+## License
+
+MIT, see `LICENSE`. RK Keyboard Software and its board data belong to RK and are not part of
+this repository.
