@@ -15,6 +15,16 @@ snappy, macros), onboard configs 1-4, polling rate and calibration. Other RK boa
 work read-only until you allow writes for that untested model. Build it with
 `build_config.bat` into `release/M75Config.exe`.
 
+M75 Config also handles RK's older non-HE boards (USB VID 258A, about 250 models): lighting
+effect, brightness, speed, sleep timer, per-key colours and key remapping. Board layouts, photos
+and effect names are read at run time from RK Keyboard Software (download it from
+rkgaming.com); nothing from RK is bundled. These boards cannot report their settings, so the
+app keeps them per board in `%APPDATA%\M75 Config\rk_classic` and sends them whole. The window
+opens automatically when only a non-HE board is connected, or with `--classic`. Not tested on a
+real non-HE board yet; the app asks before the first write to each board. The feature-report
+format was learned from [Rangoli](https://github.com/rnayabed/rangoli) by rnayabed, which
+reverse engineered it; the code here is written separately.
+
 ## Run
 
 Double-click `start.bat` (first run creates `.venv` and installs `hidapi`, `vgamepad`, `PySide6`).
@@ -67,6 +77,8 @@ Needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`) for the installer ste
 - `config_app/` – M75 Config window and panels (`run_config.py`, `build_config.bat`)
 - `ajazz_config/` – AJAZZ Config for the AK680 V2 (`run_ajazz_config.py`, `build_ajazz_config.bat`);
   so far device info and live Key Test, settings sections still to build and test on the keyboard
+- `rk_classic/` – non-HE RK boards (VID 258A): RK software reader (`rkdata.py`), feature reports
+  (`protocol.py`), HID link and window; tests read RK's data when `RK_SOFTWARE_DIR` is set
 - `kbui/` – UI shared by both config apps: light theme, keycap keyboard view, lighting preview,
   small widgets
 - `tests/` – offline tests: `python -m unittest discover tests`

@@ -16,6 +16,20 @@ def main():
     app.setApplicationName("M75 Config")
     icon = QIcon(str(ROOT / "assets" / "icon.png"))
     app.setWindowIcon(icon)
-    window = ConfigWindow(icon)
+    window = _pick_window(icon)
     window.show()
     sys.exit(app.exec())
+
+
+def _pick_window(icon):
+    """HE boards get the full window; a non-HE RK board (VID 0x258A) gets the classic one."""
+    if "--classic" in sys.argv:
+        from rk_classic.window import ClassicWindow
+        return ClassicWindow(icon)
+    from app.device import find
+    if not find():
+        from rk_classic.link import connected
+        if connected():
+            from rk_classic.window import ClassicWindow
+            return ClassicWindow(icon)
+    return ConfigWindow(icon)
