@@ -1,7 +1,9 @@
 ; Inno Setup script for Open HE Config. Built by build.bat from dist\OpenHEConfig (onedir build).
 
 #define AppName "Open HE Config"
-#define AppVersion "1.0.0"
+#ifndef AppVersion
+  #define AppVersion "1.0.0"   // build.bat passes /DAppVersion=<version>
+#endif
 #define AppExe "OpenHEConfig.exe"
 
 [Setup]

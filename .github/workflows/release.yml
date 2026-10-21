@@ -1,0 +1,58 @@
+# Builds the portable exe and the installer on every push to main, and publishes them as a GitHub
+# release (v1.0.N, N = how many releases this workflow has made). Pushes that only touch docs or
+# this workflow do not release. "Run workflow" on the Actions tab starts a release by hand.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".github/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Version
+        id: version
+        shell: bash
+        run: echo "version=1.0.$(( ${{ github.run_number }} - 1 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        shell: cmd
+        env:
+          PY: python
+          VERSION: ${{ steps.version.outputs.version }}
+        run: call build.bat
+
+      - name: Publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" \
+            "release/OpenHEConfig-Portable.exe" \
+            "release/OpenHEConfig-$VERSION-Setup.exe" \
+            --target "$GITHUB_SHA" \
+            --title "Open HE Config $VERSION" \
+            --generate-notes

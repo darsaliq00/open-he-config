@@ -10,3 +10,7 @@ __pycache__/
 macros.json
 effects.json
 *.log
+app_settings.json
+macro_library.json
+# non-HE board settings when run from source
+rk_classic/*.json
