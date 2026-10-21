@@ -1,7 +1,6 @@
 """Advanced keys tab: DKS, multi-point, mod-tap, toggle, END, SOCD, rappy snappy and macros."""
 
 import json
-import sys
 from pathlib import Path
 
 from PySide6.QtWidgets import (
@@ -11,6 +10,7 @@ from PySide6.QtWidgets import (
 from app import protocol as p
 from app.kbconfig import read_advanced, write_advanced, write_keys, write_socd
 from app.layout import RK_KEYS as KEYS
+from app.paths import data_dir
 from kbui.widgets import SliderRow, label, rule
 
 from .panels import Panel, row
@@ -33,10 +33,6 @@ HELP = {
 }
 
 
-def data_dir() -> Path:
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    return Path(__file__).resolve().parent.parent
 
 
 COMBO_ITEM = -1

@@ -24,7 +24,7 @@ Lighting effect, brightness, speed, sleep timer, per-key colours and key remappi
 - **Board data:** layouts, photos and effect names are read at run time from RK Keyboard Software,
   which you download from rkgaming.com. Nothing from RK is bundled.
 - **Saved settings:** these boards cannot report their settings, so the app keeps them per board in
-  `%APPDATA%\M75 Config\rk_classic` and sends them whole.
+  its data folder (see Build) and sends them whole.
 - **When this window opens:** automatically when only a non-HE board is connected, or with `--classic`.
 - **Testing:** not tested on a real non-HE board yet. The app asks before the first write to each board.
 
@@ -39,7 +39,16 @@ python -m venv .venv
 .venv\Scripts\python run_config.py
 ```
 
-To build the app, run `build_config.bat`. It creates `release\M75Config.exe`.
+## Build
+
+`build.bat` makes, in `release\`:
+
+- `M75Config-Portable.exe`: single file, run from anywhere. Its data (macros, effect choices,
+  non-HE board settings) is kept next to the exe.
+- `M75Config-1.0.0-Setup.exe`: installer (needs admin). Installs to Program Files with Start
+  menu and optional desktop shortcuts. Data goes to `%APPDATA%\M75 Config`.
+
+Needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`) for the installer.
 
 ## Files
 

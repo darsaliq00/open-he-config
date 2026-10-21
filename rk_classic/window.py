@@ -7,7 +7,6 @@ JSON file and sends it whole with "Send to keyboard".
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -17,6 +16,7 @@ from PySide6.QtWidgets import (QCheckBox, QColorDialog, QComboBox, QFileDialog, 
                                QMainWindow, QMessageBox, QPushButton, QScrollArea, QTabWidget,
                                QVBoxLayout, QWidget)
 
+from app.paths import data_dir as app_data_dir
 from kbui import theme
 from kbui.widgets import SliderRow, card, label, row
 
@@ -27,7 +27,7 @@ from .rkdata import Board, RKSoftware, find_install
 
 
 def data_dir() -> Path:
-    base = Path(os.environ.get("APPDATA", Path.home())) / "M75 Config" / "rk_classic"
+    base = app_data_dir() / "rk_classic"
     base.mkdir(parents=True, exist_ok=True)
     return base
 
