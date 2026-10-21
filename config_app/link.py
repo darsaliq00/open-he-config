@@ -109,13 +109,20 @@ class Link:
                 return None
         return reply[4:] if reply else None
 
-    def diag(self, data_type: int, page: int, timeout: float = 0.05) -> list[int] | None:
-        """One page (63 values) of a CMD_RM6X21 data type."""
+    def diag(self, data_type: int, page: int, timeout: float = 0.15) -> list[int] | None:
+        """One page (63 values) of a CMD_RM6X21 data type.
+
+        The reply does not say which page it holds, so a reply that arrives late would be taken for
+        the next request's page. After a timeout, wait and drain so a late reply cannot be misfiled.
+        """
         with self.lock:
             if not self.dev:
                 return None
             try:
                 reply = self._exchange(p.req_diag(data_type, page), 192, timeout)
+                if reply is None:
+                    time.sleep(0.05)
+                    self._drain()
             except OSError:
                 self.dev = None
                 return None

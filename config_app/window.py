@@ -318,17 +318,25 @@ class ConfigWindow(QMainWindow):
 
     def _live_loop(self):
         """Highlights pressed keys from the firmware's own travel readings."""
+        last = [[0] * 63, [0] * 63]
         while True:
             if not self._live_on or self.busy:
+                self.travel = [0] * 126      # nothing is shown as held while readings pause
+                last = [[0] * 63, [0] * 63]
                 time.sleep(0.2)
                 continue
             if not self.link.connected and not self.link.open():
+                self.travel = [0] * 126
                 time.sleep(1.0)
                 continue
             for page in (1, 2):
                 vals = self.link.diag(p.DIAG_TRAVEL, page)
                 if vals:
-                    self.travel[(page - 1) * 63:page * 63] = vals
+                    # a key counts only when two readings in a row agree, so a stray reply (another
+                    # app polling the keyboard, or a page that arrived late) cannot light up a key
+                    prev = last[page - 1]
+                    self.travel[(page - 1) * 63:page * 63] = [min(a, b) for a, b in zip(vals, prev)]
+                    last[page - 1] = vals
             time.sleep(LIVE_INTERVAL)
 
     def read(self, force: bool = False):
