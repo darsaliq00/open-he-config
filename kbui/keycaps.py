@@ -14,6 +14,7 @@ BADGE = QColor(theme.ACCENT)
 SELECT = QColor(theme.ACCENT)
 PRESSED = QColor("#ffcf6e")
 BED = QColor("#e9f3fb")
+LIVE = QColor("#e8590c")           # live travel readout
 VALUE_TOP = QColor("#1f9d55")       # actuation (green, like RK's web driver)
 VALUE_PRESS = QColor("#2563eb")     # rapid trigger press (blue)
 VALUE_RELEASE = QColor("#ea580c")   # rapid trigger release (orange)
@@ -40,6 +41,7 @@ class KeycapView(QWidget):
         self.swatches: dict[int, QColor] = {}   # colour strip per key
         self.leds: dict[int, QColor] = {}       # lit key face (lighting preview)
         self.values: dict[int, tuple] = {}      # (top, bottom-left, bottom-right) numbers, RK web style
+        self.live_mm: dict[int, float] = {}     # live travel of pressed keys, drawn on the keycap
         self.current: int | None = None
         self.selection: set[int] = set()
         self.rects: list[tuple[int, str, QRectF]] = []
@@ -74,6 +76,10 @@ class KeycapView(QWidget):
 
     def set_swatches(self, swatches):
         self._set("swatches", swatches)
+
+    def set_live(self, live_mm):
+        """slot -> current travel in mm for keys being pressed (empty dict clears)."""
+        self._set("live_mm", live_mm)
 
     def set_values(self, values):
         """slot -> (top text, bottom-left text, bottom-right text); any may be empty."""
@@ -128,7 +134,23 @@ class KeycapView(QWidget):
             p.setPen(QColor("white") if light_face else LABEL)
             text_rect = QRectF(top.left(), top.top() + 4, top.width(), top.height() - 4)
             p.drawText(text_rect, Qt.AlignCenter, label)
-            vals = self.values.get(slot)
+            live = self.live_mm.get(slot)
+            if live is not None:
+                # travel bar down the right edge and the depth in mm over the key face
+                bar = QRectF(top.right() - 5, top.top() + 3, 3, top.height() - 6)
+                p.setPen(Qt.NoPen)
+                p.setBrush(QColor(255, 255, 255, 170))
+                p.drawRoundedRect(bar, 1.5, 1.5)
+                fill = QRectF(bar.left(), bar.top(), bar.width(), bar.height() * min(1.0, live / 4.0))
+                p.setBrush(LIVE)
+                p.drawRoundedRect(fill, 1.5, 1.5)
+                tag_r = QRectF(top.left() + 2, top.bottom() - 13, top.width() - 9, 12)
+                p.setBrush(LIVE)
+                p.drawRoundedRect(tag_r, 3, 3)
+                p.setFont(badge_font)
+                p.setPen(QColor("white"))
+                p.drawText(tag_r, Qt.AlignCenter, f"{live:.2f}mm")
+            vals = self.values.get(slot) if live is None else None
             if vals:
                 p.setFont(value_font)
                 top_t, bl, br = (tuple(vals) + ("", "", ""))[:3]

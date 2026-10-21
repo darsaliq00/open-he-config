@@ -27,6 +27,7 @@ from .perfpage import PerformancePage
 FULL_TRAVEL_UM = 3300
 LIVE_INTERVAL = 0.03
 PRESSED_UM = 400
+LIVE_UM = 100       # show the live travel on keys pressed deeper than 0.1 mm
 
 MACRO_PAGE = -1
 
@@ -592,6 +593,7 @@ class ConfigWindow(QMainWindow):
             self.board.set_leds({})
         depth = {} if lighting else {s: min(1.0, self.travel[s] / FULL_TRAVEL_UM) for s in KEYS if self.travel[s] > 10}
         self.board.set_depth(depth)
+        self.board.set_live({} if lighting else {s: self.travel[s] / 1000 for s in KEYS if self.travel[s] > LIVE_UM})
         self._travel_test(down)
         connected = self.link.connected
         if connected != getattr(self, "_connected", None):
