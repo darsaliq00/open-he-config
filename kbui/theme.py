@@ -39,6 +39,15 @@ QPushButton:disabled {{ color: #c3c9d2; }}
 QPushButton#save[dirty="true"] {{ background: {ACCENT}; border-color: {ACCENT}; color: white; font-weight: 600; }}
 QPushButton#danger {{ color: {DANGER}; }}
 QPushButton#danger:hover {{ border-color: {DANGER}; background: #fdeeee; }}
+QPushButton#dangerfill {{ background: {DANGER}; border-color: {DANGER}; color: white; }}
+QPushButton#dangerfill:hover {{ background: #d63b40; color: white; }}
+QPushButton#dangerfill:disabled {{ background: #f3b8ba; border-color: #f3b8ba; color: white; }}
+QTableWidget {{ background: {CARD}; border: 0; border-radius: 12px; gridline-color: {LINE}; selection-background-color: {ACCENT_SOFT}; selection-color: {TEXT}; }}
+QTableWidget::item {{ padding: 6px 10px; border-bottom: 1px solid {LINE}; }}
+QHeaderView::section {{ background: {CARD}; border: 0; border-bottom: 1px solid {LINE}; padding: 10px; color: {TEXT}; font-weight: 600; }}
+QTableWidget QSpinBox {{ min-width: 60px; padding: 2px 6px; margin: 4px 6px; }}
+QTableWidget::indicator {{ width: 15px; height: 15px; border: 1px solid #c3c9d2; border-radius: 4px; background: {CARD}; }}
+QTableWidget::indicator:checked {{ background: {ACCENT}; border-color: {ACCENT}; }}
 QPushButton#link {{ background: transparent; border: 0; padding: 0; color: {ACCENT}; }}
 QPushButton#link:hover {{ text-decoration: underline; }}
 QPushButton#seg {{ padding: 5px 10px; }}

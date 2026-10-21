@@ -13,7 +13,14 @@ allow writes for that model.
 - remapping, Fn layers
 - lighting with live effect preview, per-key colours
 - advanced keys: DKS, multi-point, mod-tap, toggle, END, SOCD, rappy snappy, macros
-- onboard configs 1-4, polling rate, calibration, key test
+- onboard configs 1-4, polling rate, calibration
+- Travel Test: live key depth on a 0-4 mm ruler with the key's actuation point, plus Key Test
+- Macro Management: record macros from the keyboard, rename, copy, delete and edit step delays;
+  put one on a key from Advanced Key > Macro
+
+The sidebar follows RK's web driver (Light Setting, Performance Setting, Custom Key, Advanced
+Key, Macro Management) so it feels familiar. Firmware updates are not offered: this app never
+flashes the keyboard.
 
 Close the RK web driver tab first, since it can hold the keyboard's config interface.
 

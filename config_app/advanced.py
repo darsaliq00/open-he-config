@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QDialog, QGridLayout, QHBoxLayout, QPushButton, QSpinBox, QVBoxLayout, QWidget,
+    QCheckBox, QComboBox, QDialog, QGridLayout, QHBoxLayout, QMenu, QPushButton, QSpinBox, QVBoxLayout, QWidget,
 )
 
 from app import protocol as p
@@ -279,6 +279,9 @@ class AdvancedPanel(Panel):
         h.addWidget(add_step)
         h.addStretch()
         v.addLayout(h)
+        load = QPushButton("Load from Macro Management…")
+        load.clicked.connect(lambda: self._load_from_library(load))
+        v.addWidget(load)
         v.addWidget(label("Plays", "muted"))
         self.macro_mode = QComboBox()
         for m, text in p.MACRO_MODES.items():
@@ -318,6 +321,23 @@ class AdvancedPanel(Panel):
             h.addWidget(x)
         self.macro_rows_box.addWidget(w)
         self.macro_steps.append(entry)
+
+    def _load_from_library(self, button):
+        from .macros import load_library
+        macros = load_library()
+        menu = QMenu(self)
+        if not macros:
+            menu.addAction("No macros yet: record one in Macro Management").setEnabled(False)
+        for m in macros:
+            act = menu.addAction(f"{m.get('name', 'Macro')}  ({len(m['events'])} steps)")
+            act.triggered.connect(lambda _=False, m=m: self._use_macro(m))
+        menu.exec(button.mapToGlobal(button.rect().bottomLeft()))
+
+    def _use_macro(self, macro: dict):
+        self._clear_steps()
+        for code, pressed, delay in macro["events"][:60]:
+            self._add_step(code, bool(pressed), int(delay))
+        self.status.setText(f"Loaded {macro.get('name', 'macro')}. Write it to put it on this key.")
 
     def _remove_step(self, entry):
         self.macro_steps.remove(entry)

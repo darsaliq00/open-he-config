@@ -18,16 +18,20 @@ from kbui import theme
 from .advanced import AdvancedPanel
 from kbui.keycaps import KeycapView
 from kbui.lightfx import LightSim
+from kbui.travel import TravelTestCard
 from .link import TESTED_PID, Link
+from .macros import MacroPage
 from .panels import LightingPanel, PerformancePanel, RemapPanel, SystemPanel
 
 FULL_TRAVEL_UM = 3300
 LIVE_INTERVAL = 0.03
 PRESSED_UM = 400
 
-# sidebar sections, in the order shown, mapped to panel indexes
+MACRO_PAGE = -1
+
+# sidebar sections, in the order RK's web driver shows them, mapped to panel indexes
 SECTIONS = [("Light Setting", 2), ("Performance Setting", 0), ("Custom Key", 1), ("Advanced Key", 3),
-            ("System", 4)]
+            ("Macro Management", MACRO_PAGE), ("System", 4)]
 
 
 class KeyEater(QObject):
@@ -43,6 +47,11 @@ class KeyEater(QObject):
 
     def eventFilter(self, obj, event):
         if event.type() in self.TYPES and QApplication.activeWindow() is self.window:
+            macros = getattr(self.window, "macro_page", None)
+            if macros and macros.recording and event.type() != QEvent.ShortcutOverride:
+                if not event.isAutoRepeat():
+                    macros.record_key(event.nativeScanCode(), event.type() == QEvent.KeyPress)
+                return True
             focus = QApplication.focusWidget()
             if isinstance(focus, (QAbstractSpinBox, QLineEdit)) or (
                     focus and isinstance(focus.parent(), QAbstractSpinBox)):
@@ -91,7 +100,11 @@ class ConfigWindow(QMainWindow):
         mv.addWidget(self._board_card(), 0, Qt.AlignHCenter)
         mv.addLayout(self._lower())
         mv.addStretch()
-        scroll.setWidget(main)
+        self.macro_page = MacroPage(self)
+        self.pages = QStackedWidget()
+        self.pages.addWidget(main)
+        self.pages.addWidget(self.macro_page)
+        scroll.setWidget(self.pages)
         outer.addWidget(scroll, 1)
 
         self.bridge = Bridge()
@@ -219,6 +232,10 @@ class ConfigWindow(QMainWindow):
         self.adv_grid.setSpacing(12)
         right.addWidget(self.adv_cards)
 
+        tests = QHBoxLayout()
+        tests.setSpacing(18)
+        self.travel_card = TravelTestCard()
+        tests.addWidget(self.travel_card, 0, Qt.AlignTop)
         kc, kv = card()
         kv.addWidget(label("Key Test", "heading"))
         self.test_now = label("Press any key…", "muted")
@@ -230,7 +247,9 @@ class ConfigWindow(QMainWindow):
         self.test_recent = label("", "muted")
         self.test_recent.setWordWrap(True)
         kv.addWidget(self.test_recent)
-        right.addWidget(kc)
+        kv.addStretch()
+        tests.addWidget(kc, 1)
+        right.addLayout(tests)
         right.addStretch()
         h.addLayout(right, 1)
         return h
@@ -414,6 +433,14 @@ class ConfigWindow(QMainWindow):
 
     def _section(self, nav_index: int):
         index = SECTIONS[nav_index][1]
+        if self.macro_page.recording and index != MACRO_PAGE:
+            self.nav_group.button(self._nav_index()).setChecked(True)
+            return
+        if index == MACRO_PAGE:
+            self.pages.setCurrentIndex(1)
+            self.nav_group.button(nav_index).setChecked(True)
+            return
+        self.pages.setCurrentIndex(0)
         if self.stack.currentIndex() != index and self.panel.pending:
             if not self.ask("Discard changes not written to the keyboard?"):
                 self.nav_group.button(self._nav_index()).setChecked(True)
@@ -424,6 +451,8 @@ class ConfigWindow(QMainWindow):
         self.refresh()
 
     def _nav_index(self) -> int:
+        if self.pages.currentIndex() == 1:
+            return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == MACRO_PAGE)
         return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == self.stack.currentIndex())
 
     def _set_enabled(self, on: bool):
@@ -541,10 +570,26 @@ class ConfigWindow(QMainWindow):
         self.board.set_depth(depth)
         if self.settings and isinstance(self.panel, PerformancePanel):
             self.panel.tick(self.travel)
+        self._travel_test(down)
         connected = self.link.connected
         if connected != getattr(self, "_connected", None):
             self._connected = connected
             self.refresh()
+
+    def _travel_test(self, down: set[int]):
+        """Travel Test card: the deepest pressed key, else the last one pressed (springing back)."""
+        if not self.travel_card.on:
+            return
+        slot = max(down, key=lambda s: self.travel[s]) if down else (self.history[0] if self.history else None)
+        if slot is None:
+            self.travel_card.show_key(None, 0.0)
+            return
+        actuation = None
+        k = (self.settings or {}).get("keys", {}).get(slot)
+        if k:
+            touch = k.get("mode", {}).get("touch")
+            actuation = self.settings["global"]["actuation_mm"] if touch == "global" else k.get("actuation")
+        self.travel_card.show_key(KEYS[slot]["label"], self.travel[slot] / 1000, actuation)
 
     # ---------- window ----------
 
@@ -559,6 +604,8 @@ class ConfigWindow(QMainWindow):
         super().hideEvent(e)
 
     def closeEvent(self, e):
+        if self.macro_page.recording:
+            self.macro_page._toggle_recording()
         if self.panels[4].calibrating and not self.ask("Calibration is still running. Quit anyway? "
                                                          "Finish calibration first if you can."):
             e.ignore()
