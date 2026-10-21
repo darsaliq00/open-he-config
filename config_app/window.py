@@ -18,10 +18,11 @@ from kbui import theme
 from .advanced import AdvancedPanel
 from kbui.keycaps import KeycapView
 from kbui.lightfx import LightSim
-from kbui.travel import TravelTestCard
 from .link import TESTED_PID, Link
 from .macros import MacroPage
-from .panels import LightingPanel, PerformancePanel, RemapPanel, SystemPanel
+from .custompage import CustomKeyPage
+from .panels import LightingPanel, SystemPanel
+from .perfpage import PerformancePage
 
 FULL_TRAVEL_UM = 3300
 LIVE_INTERVAL = 0.03
@@ -98,7 +99,7 @@ class ConfigWindow(QMainWindow):
         mv.setContentsMargins(0, 0, 4, 0)
         mv.setSpacing(18)
         mv.addWidget(self._board_card(), 0, Qt.AlignHCenter)
-        mv.addLayout(self._lower())
+        mv.addWidget(self._lower())
         mv.addStretch()
         self.macro_page = MacroPage(self)
         self.pages = QStackedWidget()
@@ -210,16 +211,24 @@ class ConfigWindow(QMainWindow):
         v.addWidget(self.board, 0, Qt.AlignHCenter)
         return c
 
-    def _lower(self) -> QHBoxLayout:
-        h = QHBoxLayout()
+    def _lower(self) -> QStackedWidget:
+        """Below the keyboard: full-width pages for Performance and Custom Key (like RK's web driver),
+        and a settings card plus side cards for the other sections."""
+        self.panels = [PerformancePage(self), CustomKeyPage(self), LightingPanel(self), AdvancedPanel(self),
+                       SystemPanel(self)]
+        self.panel_index = 0
+        self.travel_card = self.panels[0].travel_card
+        self.lower = QStackedWidget()
+
+        classic = QWidget()
+        h = QHBoxLayout(classic)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(18)
         c, v = card()
         c.setFixedWidth(400)
         self.stack = QStackedWidget()
         self.stack.setFixedWidth(362)  # keeps long notes wrapping instead of widening the panel
-        self.panels = [PerformancePanel(self), RemapPanel(self), LightingPanel(self), AdvancedPanel(self),
-                       SystemPanel(self)]
-        for panel in self.panels:
+        for panel in self.panels[2:]:
             self.stack.addWidget(panel)
         v.addWidget(self.stack)
         h.addWidget(c, 0, Qt.AlignTop)
@@ -231,11 +240,6 @@ class ConfigWindow(QMainWindow):
         self.adv_grid.setContentsMargins(0, 0, 0, 0)
         self.adv_grid.setSpacing(12)
         right.addWidget(self.adv_cards)
-
-        tests = QHBoxLayout()
-        tests.setSpacing(18)
-        self.travel_card = TravelTestCard()
-        tests.addWidget(self.travel_card, 0, Qt.AlignTop)
         kc, kv = card()
         kv.addWidget(label("Key Test", "heading"))
         self.test_now = label("Press any key…", "muted")
@@ -247,16 +251,26 @@ class ConfigWindow(QMainWindow):
         self.test_recent = label("", "muted")
         self.test_recent.setWordWrap(True)
         kv.addWidget(self.test_recent)
-        kv.addStretch()
-        tests.addWidget(kc, 1)
-        right.addLayout(tests)
+        right.addWidget(kc)
         right.addStretch()
         h.addLayout(right, 1)
-        return h
+
+        self.lower.addWidget(classic)
+        self.lower.addWidget(self.panels[0])
+        self.lower.addWidget(self.panels[1])
+        return self.lower
 
     @property
     def panel(self):
-        return self.panels[self.stack.currentIndex()]
+        return self.panels[self.panel_index]
+
+    def _show_panel(self, index: int):
+        self.panel_index = index
+        if index < 2:
+            self.lower.setCurrentIndex(index + 1)
+        else:
+            self.lower.setCurrentIndex(0)
+            self.stack.setCurrentIndex(index - 2)
 
     # ---------- helpers for panels ----------
 
@@ -402,7 +416,16 @@ class ConfigWindow(QMainWindow):
     def _clicked(self, slot: int):
         if not self.settings:
             return
-        if QApplication.keyboardModifiers() & (Qt.ControlModifier | Qt.ShiftModifier):
+        if getattr(self.panel, "toggle_select", False):
+            # RK style: clicking a key checks or unchecks it
+            if slot in self.selection:
+                self.selection.discard(slot)
+                if self.current == slot:
+                    self.current = min(self.selection) if self.selection else None
+            else:
+                self.selection.add(slot)
+                self.current = slot
+        elif QApplication.keyboardModifiers() & (Qt.ControlModifier | Qt.ShiftModifier):
             if slot in self.selection and len(self.selection) > 1:
                 self.selection.discard(slot)
                 if self.current == slot:
@@ -441,22 +464,22 @@ class ConfigWindow(QMainWindow):
             self.nav_group.button(nav_index).setChecked(True)
             return
         self.pages.setCurrentIndex(0)
-        if self.stack.currentIndex() != index and self.panel.pending:
+        if self.panel_index != index and self.panel.pending:
             if not self.ask("Discard changes not written to the keyboard?"):
                 self.nav_group.button(self._nav_index()).setChecked(True)
                 return
             self.panel.discard()
-        self.stack.setCurrentIndex(index)
+        self._show_panel(index)
         self.nav_group.button(nav_index).setChecked(True)
         self.refresh()
 
     def _nav_index(self) -> int:
         if self.pages.currentIndex() == 1:
             return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == MACRO_PAGE)
-        return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == self.stack.currentIndex())
+        return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == self.panel_index)
 
     def _set_enabled(self, on: bool):
-        self.stack.setEnabled(on)
+        self.lower.setEnabled(on)
         for b in (*self.nav_group.buttons(), *self.cfg_group.buttons()):
             b.setEnabled(on)
 
@@ -482,6 +505,7 @@ class ConfigWindow(QMainWindow):
         self.board_hint.setText(panel.hint)
         self.board.set_targets({s: t for s, t in panel.tags().items() if s in KEYS})
         self.board.set_swatches(panel.swatches())
+        self.board.set_values(panel.values())
         self.board.set_current(self.current)
         self.board.set_selection(self.selection)
         panel.render()
@@ -568,8 +592,6 @@ class ConfigWindow(QMainWindow):
             self.board.set_leds({})
         depth = {} if lighting else {s: min(1.0, self.travel[s] / FULL_TRAVEL_UM) for s in KEYS if self.travel[s] > 10}
         self.board.set_depth(depth)
-        if self.settings and isinstance(self.panel, PerformancePanel):
-            self.panel.tick(self.travel)
         self._travel_test(down)
         connected = self.link.connected
         if connected != getattr(self, "_connected", None):

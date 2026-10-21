@@ -69,6 +69,9 @@ class Panel(QWidget):
     def swatches(self) -> dict[int, QColor]:
         return {}
 
+    def values(self) -> dict[int, tuple]:
+        return {}
+
     def render(self):
         pass
 

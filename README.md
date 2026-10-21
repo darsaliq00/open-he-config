@@ -9,8 +9,12 @@ Built and tested on the RK M75 HE. Every board in RK's web driver list is detect
 than the M75 HE are drawn from the key map the keyboard reports, and stay read-only until you
 allow writes for that model.
 
-- actuation, rapid trigger, deadzones
-- remapping, Fn layers
+- Performance Setting, laid out like RK's web driver: per-key values on the keys (green actuation,
+  blue/orange rapid trigger), tabs for Normal Travel, Rapid Trigger, Advanced (dead zones, polling
+  rate, top dead zone switch), Keyboard Adjusting (calibration) and Select Axis (switch type), plus
+  Select All / WASD / Number / Letter / Uncheck / Reset Travel
+- Custom Key, laid out like RK's web driver: WIN/MAC, FN0-FN3, and Letter, Number, Symbolic, Basic,
+  Function, Keyboard Control, Mouse and Combination key tabs
 - lighting with live effect preview, per-key colours
 - advanced keys: DKS, multi-point, mod-tap, toggle, END, SOCD, rappy snappy, macros
 - onboard configs 1-4, polling rate, calibration

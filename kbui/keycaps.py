@@ -14,6 +14,9 @@ BADGE = QColor(theme.ACCENT)
 SELECT = QColor(theme.ACCENT)
 PRESSED = QColor("#ffcf6e")
 BED = QColor("#e9f3fb")
+VALUE_TOP = QColor("#1f9d55")       # actuation (green, like RK's web driver)
+VALUE_PRESS = QColor("#2563eb")     # rapid trigger press (blue)
+VALUE_RELEASE = QColor("#ea580c")   # rapid trigger release (orange)
 
 
 def _font(size, bold=False):
@@ -36,6 +39,7 @@ class KeycapView(QWidget):
         self.targets: dict[int, str] = {}       # tag badge per key
         self.swatches: dict[int, QColor] = {}   # colour strip per key
         self.leds: dict[int, QColor] = {}       # lit key face (lighting preview)
+        self.values: dict[int, tuple] = {}      # (top, bottom-left, bottom-right) numbers, RK web style
         self.current: int | None = None
         self.selection: set[int] = set()
         self.rects: list[tuple[int, str, QRectF]] = []
@@ -71,6 +75,10 @@ class KeycapView(QWidget):
     def set_swatches(self, swatches):
         self._set("swatches", swatches)
 
+    def set_values(self, values):
+        """slot -> (top text, bottom-left text, bottom-right text); any may be empty."""
+        self._set("values", values)
+
     def set_leds(self, leds):
         self._set("leds", leds)
 
@@ -87,7 +95,7 @@ class KeycapView(QWidget):
         p.setBrush(BED)
         p.drawRoundedRect(QRectF(0, 0, self.width(), self.height()), 10, 10)
         p.translate(self.PAD, self.PAD)
-        label_font, badge_font = _font(8.5), _font(6.5, True)
+        label_font, badge_font, value_font = _font(8.5), _font(6.5, True), _font(6, True)
         for slot, label, r in self.rects:
             d = self.depth.get(slot, 0.0)
             led = self.leds.get(slot)
@@ -120,6 +128,21 @@ class KeycapView(QWidget):
             p.setPen(QColor("white") if light_face else LABEL)
             text_rect = QRectF(top.left(), top.top() + 4, top.width(), top.height() - 4)
             p.drawText(text_rect, Qt.AlignCenter, label)
+            vals = self.values.get(slot)
+            if vals:
+                p.setFont(value_font)
+                top_t, bl, br = (tuple(vals) + ("", "", ""))[:3]
+                if top_t:
+                    p.setPen(VALUE_TOP)
+                    p.drawText(QRectF(top.left() + 3, top.top(), top.width() - 6, 10), Qt.AlignLeft | Qt.AlignTop, top_t)
+                if bl:
+                    p.setPen(VALUE_PRESS)
+                    p.drawText(QRectF(top.left() + 3, top.bottom() - 10, top.width() / 2, 10),
+                               Qt.AlignLeft | Qt.AlignBottom, bl)
+                if br:
+                    p.setPen(VALUE_RELEASE)
+                    p.drawText(QRectF(top.center().x(), top.bottom() - 10, top.width() / 2 - 3, 10),
+                               Qt.AlignRight | Qt.AlignBottom, br)
             tag = self.targets.get(slot)
             if tag:
                 p.setFont(badge_font)

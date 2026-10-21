@@ -48,6 +48,22 @@ QHeaderView::section {{ background: {CARD}; border: 0; border-bottom: 1px solid 
 QTableWidget QSpinBox {{ min-width: 60px; padding: 2px 6px; margin: 4px 6px; }}
 QTableWidget::indicator {{ width: 15px; height: 15px; border: 1px solid #c3c9d2; border-radius: 4px; background: {CARD}; }}
 QTableWidget::indicator:checked {{ background: {ACCENT}; border-color: {ACCENT}; }}
+QPushButton#tab {{ background: transparent; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 12px; color: {TEXT}; letter-spacing: 1px; }}
+QPushButton#tab:hover {{ color: {ACCENT}; background: transparent; }}
+QPushButton#tab:checked {{ color: {ACCENT}; border-bottom-color: {ACCENT}; }}
+QPushButton#pill {{ border-radius: 16px; padding: 7px 18px; color: {TEXT}; letter-spacing: 1px; }}
+QPushButton#pill:checked {{ background: #e3e6eb; border-color: #d3d8df; font-weight: 600; }}
+QPushButton#keybtn {{ background: #eef7ff; border: 1.5px solid #8cc4f0; border-radius: 14px; padding: 6px 10px; color: {TEXT}; }}
+QPushButton#keybtn:hover {{ background: #dcefff; border-color: {ACCENT}; }}
+QPushButton#keybtn:checked {{ background: {ACCENT}; border-color: {ACCENT}; color: white; }}
+QPushButton#keyhold {{ background: #fde7d3; border: 1.5px solid #f39b4a; border-radius: 14px; padding: 6px 10px; color: {TEXT}; }}
+QPushButton#keyhold:hover {{ background: #fbd5b2; }}
+QLabel#holdnote {{ color: {MUTED}; font-size: 8.5pt; }}
+QPushButton#quick {{ min-width: 120px; padding: 8px 14px; color: {TEXT}; letter-spacing: 1px; border-radius: 4px; }}
+QPushButton#axis {{ text-align: left; padding: 8px 12px; }}
+QPushButton#axis:checked {{ background: {ACCENT_SOFT}; border-color: {ACCENT}; font-weight: 600; }}
+QDoubleSpinBox {{ background: {CARD}; border: 1px solid {LINE}; border-radius: 6px; padding: 3px 4px; }}
+QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {{ width: 0px; border: 0; image: none; }}
 QPushButton#link {{ background: transparent; border: 0; padding: 0; color: {ACCENT}; }}
 QPushButton#link:hover {{ text-decoration: underline; }}
 QPushButton#seg {{ padding: 5px 10px; }}

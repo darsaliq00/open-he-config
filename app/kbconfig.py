@@ -17,7 +17,7 @@ DISTANCES = {
     "dead_release": p.LAYOUT_DR,
 }
 LAYERS = {"fn0": p.LAYOUT_FN0, "fn1": p.LAYOUT_FN1, "fn2": p.LAYOUT_FN2, "fn3": p.LAYOUT_FN3}
-FIELDS = {"mode": p.LAYOUT_MODE, **DISTANCES, **LAYERS}
+FIELDS = {"mode": p.LAYOUT_MODE, **DISTANCES, **LAYERS, "axis": p.LAYOUT_AXIS}
 _NAMES = {v: k for k, v in FIELDS.items()}
 
 
@@ -52,7 +52,21 @@ def read_system(request) -> dict:
         "top_dead_switch": bool(_order(request, p.ORDER_TOP_DEAD_SWITCH)),
         "polling_raw": _order(request, p.ORDER_POLLING),
         "config": _order(request, p.ORDER_CONFIG),
+        "axes": read_axes(request),
     }
+
+
+def read_axes(request) -> list[int]:
+    """Switch type ids the keyboard offers (see app/axes.py); a key's "axis" indexes this list."""
+    reply = request(p.req_order(p.ORDER_AXES))
+    if reply is None:
+        return []
+    axes = []
+    for a in p.parse_order(p.ORDER_AXES, reply):
+        if a in (0, 0xFFFF):
+            break
+        axes.append(a)
+    return axes
 
 
 def read_settings(request) -> dict:
@@ -89,7 +103,7 @@ def read_settings(request) -> dict:
 def _store(k: dict, layout: int, value: int):
     if layout == p.LAYOUT_MODE:
         k["mode"], k["mode_raw"] = p.parse_mode(value), value
-    elif layout in LAYERS.values():
+    elif layout in LAYERS.values() or layout == p.LAYOUT_AXIS:
         k[_NAMES[layout]] = value
     else:
         k[_NAMES[layout]] = value / 1000
@@ -102,6 +116,8 @@ def _raw(key: dict, name: str, value) -> tuple[int, int, int]:
         return key["id"], p.LAYOUT_MODE, p.mode_value(key["mode"]["touch"], 0)
     if name in LAYERS:
         return key["id"], LAYERS[name], value
+    if name == "axis":
+        return key["id"], p.LAYOUT_AXIS, int(value)
     return key["id"], DISTANCES[name], round(value * 1000)
 
 
