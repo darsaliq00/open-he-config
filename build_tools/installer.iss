@@ -24,6 +24,8 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 CloseApplications=yes
+; the running app (it may sit in the tray) holds this mutex, so setup asks to close it
+AppMutex=OpenHEConfig.SingleInstance
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Shortcuts:"
@@ -46,6 +48,10 @@ Filename: "{app}\{#AppExe}"; Description: "Launch {#AppName}"; Flags: nowait pos
 
 [UninstallRun]
 Filename: "taskkill.exe"; Parameters: "/f /im {#AppExe}"; Flags: runhidden; RunOnceId: "KillApp"
+
+[Registry]
+; the app adds itself here when "Start with Windows" is on; remove that entry on uninstall
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "Open HE Config"; Flags: uninsdeletevalue
 
 [UninstallDelete]
 Type: files; Name: "{app}\installed.flag"

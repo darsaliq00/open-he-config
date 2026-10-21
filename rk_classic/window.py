@@ -237,8 +237,15 @@ class ClassicWindow(QMainWindow):
         self.resize(1080, 820)
         self._load_rk()
         self.timer = QTimer(self, interval=2000, timeout=self._scan)
-        self.timer.start()
         self._scan()
+
+    def showEvent(self, e):
+        self.timer.start()      # scan for the keyboard only while the window is shown
+        super().showEvent(e)
+
+    def hideEvent(self, e):
+        self.timer.stop()
+        super().hideEvent(e)
 
     # ---- building ----
 

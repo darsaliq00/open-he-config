@@ -30,10 +30,11 @@ PRESSED_UM = 400
 LIVE_UM = 100       # show the live travel on keys pressed deeper than 0.1 mm
 
 MACRO_PAGE = -1
+KNOB_PAGE = -2
 
 # sidebar sections, in the order RK's web driver shows them, mapped to panel indexes
 SECTIONS = [("Light Setting", 2), ("Performance Setting", 0), ("Custom Key", 1), ("Advanced Key", 3),
-            ("Macro Management", MACRO_PAGE), ("System", 4)]
+            ("Macro Management", MACRO_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
 
 
 class KeyEater(QObject):
@@ -76,7 +77,7 @@ class ConfigWindow(QMainWindow):
         self.selection: set[int] = set()     # all selected keys (Ctrl+click adds)
         self.busy = False
         self.travel = [0] * 126
-        self._live_on = True
+        self._live_on = False   # on while the window is shown; the tray copy reads nothing
         self.history: list[int] = []
 
         self.setWindowTitle("Open HE Config")
@@ -117,10 +118,9 @@ class ConfigWindow(QMainWindow):
         threading.Thread(target=self._live_loop, name="live-travel", daemon=True).start()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._tick)
-        self.timer.start(33)
         self._set_enabled(False)
         self._section(1)
-        QTimer.singleShot(0, self.read)
+        self._read_once = False
 
     # ---------- building ----------
 
@@ -321,6 +321,8 @@ class ConfigWindow(QMainWindow):
         last = [[0] * 63, [0] * 63]
         while True:
             if not self._live_on or self.busy:
+                if not self._live_on:
+                    time.sleep(0.3)
                 self.travel = [0] * 126      # nothing is shown as held while readings pause
                 last = [[0] * 63, [0] * 63]
                 time.sleep(0.2)
@@ -472,6 +474,11 @@ class ConfigWindow(QMainWindow):
             self.pages.setCurrentIndex(1)
             self.nav_group.button(nav_index).setChecked(True)
             return
+        if index == KNOB_PAGE:
+            if self.pages.count() > 2:
+                self.pages.setCurrentIndex(2)
+            self.nav_group.button(nav_index).setChecked(True)
+            return
         self.pages.setCurrentIndex(0)
         if self.panel_index != index and self.panel.pending:
             if not self.ask("Discard changes not written to the keyboard?"):
@@ -485,12 +492,20 @@ class ConfigWindow(QMainWindow):
     def _nav_index(self) -> int:
         if self.pages.currentIndex() == 1:
             return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == MACRO_PAGE)
+        if self.pages.currentIndex() == 2:
+            return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == KNOB_PAGE)
         return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == self.panel_index)
 
     def _set_enabled(self, on: bool):
         self.lower.setEnabled(on)
         for b in (*self.nav_group.buttons(), *self.cfg_group.buttons()):
             b.setEnabled(on)
+        knob = self.nav_group.button(next(i for i, (_, idx) in enumerate(SECTIONS) if idx == KNOB_PAGE))
+        knob.setEnabled(True)   # works without the keyboard
+
+    def attach_knob_page(self, page):
+        """The knob page is owned by the app (it keeps working from the tray)."""
+        self.pages.addWidget(page)
 
     # ---------- rendering ----------
 
@@ -628,6 +643,9 @@ class ConfigWindow(QMainWindow):
     def showEvent(self, e):
         self._live_on = True
         self.timer.start(33)
+        if not self._read_once:
+            self._read_once = True
+            QTimer.singleShot(0, self.read)
         super().showEvent(e)
 
     def hideEvent(self, e):

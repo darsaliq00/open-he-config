@@ -22,6 +22,10 @@ allow writes for that model.
 - Macro Management: record macros from the keyboard, rename, copy, delete and edit step delays;
   put one on a key from Advanced Key > Macro
 
+- Knob: the volume knob is fixed in the keyboard's firmware to volume and mute, so the app remaps it on
+  the PC instead (scroll, zoom, tracks, arrows, browser tabs, virtual desktops, undo/redo, ...). It works
+  while the app runs, also from the tray; other volume keys on the PC are remapped too
+
 The sidebar follows RK's web driver (Light Setting, Performance Setting, Custom Key, Advanced
 Key, Macro Management) so it feels familiar. Firmware updates are not offered: this app never
 flashes the keyboard.
@@ -61,6 +65,13 @@ python -m venv .venv
 
 Needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`) for the installer.
 
+## Tray
+
+Closing the window keeps the app in the tray (Knob page, "Background"), and it can start with
+Windows hidden in the tray. In the tray it reads nothing from the keyboard and builds no window
+until you open it: measured at 0% CPU and about 47 MB of RAM. Starting it again opens the
+running copy instead of a second one.
+
 ## Where your data is kept
 
 The app's own files sit in one folder: next to `OpenHEConfig-Portable.exe` for the portable
@@ -70,6 +81,7 @@ from source.
 - `macros.json`: copies of macros put on keys (the keyboard cannot report macro steps back)
 - `macro_library.json`: the Macro Management list
 - `effects.json`: lighting effect choices
+- `app_settings.json`: knob actions, tray and start-with-Windows options
 - `rk_classic\`: settings for each non-HE board (these boards cannot report their settings)
 
 Everything else (actuation, rapid trigger, remaps, lighting, advanced keys) is stored in the
