@@ -1,22 +1,22 @@
-; Inno Setup script for M75 Config. Built by build.bat from dist\M75Config (onedir build).
+; Inno Setup script for Open HE Config. Built by build.bat from dist\OpenHEConfig (onedir build).
 
-#define AppName "M75 Config"
+#define AppName "Open HE Config"
 #define AppVersion "1.0.0"
-#define AppExe "M75Config.exe"
+#define AppExe "OpenHEConfig.exe"
 
 [Setup]
 AppId={{3F9B2C64-8A1E-4D7B-B5C2-6E0F91A47D38}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher=darsaliq00
-AppPublisherURL=https://github.com/darsaliq00/keyboard-config
+AppPublisherURL=https://github.com/darsaliq00/open-he-config
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 UninstallDisplayIcon={app}\{#AppExe}
 SetupIconFile=..\assets\icon.ico
 LicenseFile=..\LICENSE
 OutputDir=..\release
-OutputBaseFilename=M75Config-{#AppVersion}-Setup
+OutputBaseFilename=OpenHEConfig-{#AppVersion}-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -29,7 +29,7 @@ CloseApplications=yes
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Shortcuts:"
 
 [Files]
-Source: "..\dist\M75Config\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\OpenHEConfig\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"
 
 [INI]

@@ -1,4 +1,4 @@
-"""Light theme for M75 Config: soft grey page, white cards, blue accent."""
+"""Light theme for Open HE Config: soft grey page, white cards, blue accent."""
 
 PAGE = "#eef0f4"
 CARD = "#ffffff"

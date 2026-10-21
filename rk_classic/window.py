@@ -169,7 +169,7 @@ class PhotoKeyboard(QWidget):
 class ClassicWindow(QMainWindow):
     def __init__(self, icon=None):
         super().__init__()
-        self.setWindowTitle("M75 Config: RK keyboards (non-HE)")
+        self.setWindowTitle("Open HE Config: RK keyboards (non-HE)")
         if icon:
             self.setWindowIcon(icon)
         self.setStyleSheet(theme.STYLE)

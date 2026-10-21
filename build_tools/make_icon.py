@@ -61,10 +61,10 @@ def draw() -> Image.Image:
     sd.rounded_rectangle(box(232, 166, 250, 192), radius=r(4), fill=(37, 99, 235, 200))
     sd.line([box(52, 78)[:2], box(36, 144)[:2]], fill=(255, 255, 255, 140), width=r(4))   # glare
     font = ImageFont.truetype(str(FONT), r(40))
-    text = "RK"
+    text = "OHE"
     w = sd.textlength(text, font=font)
-    sd.text((BIG / 2 - w / 2 - r(54), r(98)), text, font=font, fill=(255, 255, 255, 235),
-            stroke_width=r(2), stroke_fill=(30, 58, 138, 200))
+    sd.text((BIG / 2 - w / 2, r(96)), text, font=font, fill=(255, 255, 255, 235),
+            stroke_width=r(3), stroke_fill=(30, 58, 138, 255))
     return Image.alpha_composite(base, shell)
 
 

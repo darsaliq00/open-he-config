@@ -1,4 +1,4 @@
-"""Main window of M75 Config: sidebar (device, onboard configs, sections), keyboard on top, settings below."""
+"""Main window of Open HE Config: sidebar (device, onboard configs, sections), keyboard on top, settings below."""
 
 import threading
 import time
@@ -79,7 +79,7 @@ class ConfigWindow(QMainWindow):
         self._live_on = True
         self.history: list[int] = []
 
-        self.setWindowTitle("M75 Config")
+        self.setWindowTitle("Open HE Config")
         self.setWindowIcon(icon)
         self.resize(1480, 920)
         self.setMinimumSize(1280, 760)
@@ -134,7 +134,7 @@ class ConfigWindow(QMainWindow):
 
         c, cv = card()
         h = QHBoxLayout()
-        self.dev_name = label("M75 Config", "device")
+        self.dev_name = label("Open HE Config", "device")
         h.addWidget(self.dev_name)
         h.addSpacing(6)
         self.dev_state = label("● Not connected", "disconnected")
@@ -298,7 +298,7 @@ class ConfigWindow(QMainWindow):
         return cb
 
     def ask(self, text: str) -> bool:
-        return QMessageBox.question(self, "M75 Config", text) == QMessageBox.Yes
+        return QMessageBox.question(self, "Open HE Config", text) == QMessageBox.Yes
 
     def primary_key(self) -> dict | None:
         return (self.settings or {}).get("keys", {}).get(self.current)

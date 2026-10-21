@@ -1,4 +1,4 @@
-# M75 Config
+# Open HE Config
 
 Desktop app that configures RK keyboards on Windows, replacing RK's web driver and Windows
 software.
@@ -54,10 +54,10 @@ python -m venv .venv
 
 `build.bat` makes, in `release\`:
 
-- `M75Config-Portable.exe`: single file, run from anywhere. Its data (macros, effect choices,
+- `OpenHEConfig-Portable.exe`: single file, run from anywhere. Its data (macros, effect choices,
   non-HE board settings) is kept next to the exe.
-- `M75Config-1.0.0-Setup.exe`: installer (needs admin). Installs to Program Files with Start
-  menu and optional desktop shortcuts. Data goes to `%APPDATA%\M75 Config`.
+- `OpenHEConfig-1.0.0-Setup.exe`: installer (needs admin). Installs to Program Files with Start
+  menu and optional desktop shortcuts. Data goes to `%APPDATA%\Open HE Config`.
 
 Needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`) for the installer.
 

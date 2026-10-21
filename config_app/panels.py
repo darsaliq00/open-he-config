@@ -1,4 +1,4 @@
-"""Side panels of M75 Config, one per tab. Each panel reads from and writes through the window."""
+"""Side panels of Open HE Config, one per tab. Each panel reads from and writes through the window."""
 
 import json
 

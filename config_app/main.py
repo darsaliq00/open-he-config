@@ -1,4 +1,4 @@
-"""Entry point of M75 Config, the RK keyboard settings app."""
+"""Entry point of Open HE Config, the RK keyboard settings app."""
 
 import sys
 from pathlib import Path
@@ -13,7 +13,7 @@ ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("M75 Config")
+    app.setApplicationName("Open HE Config")
     icon = QIcon(str(ROOT / "assets" / "icon.png"))
     app.setWindowIcon(icon)
     window = _pick_window(icon)
