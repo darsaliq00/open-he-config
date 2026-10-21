@@ -61,6 +61,20 @@ python -m venv .venv
 
 Needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`) for the installer.
 
+## Where your data is kept
+
+The app's own files sit in one folder: next to `OpenHEConfig-Portable.exe` for the portable
+build, `%APPDATA%\Open HE Config` for the installed copy, and the repository folder when run
+from source.
+
+- `macros.json`: copies of macros put on keys (the keyboard cannot report macro steps back)
+- `macro_library.json`: the Macro Management list
+- `effects.json`: lighting effect choices
+- `rk_classic\`: settings for each non-HE board (these boards cannot report their settings)
+
+Everything else (actuation, rapid trigger, remaps, lighting, advanced keys) is stored in the
+keyboard itself.
+
 ## Files
 
 - `config_app/`: main window, panels and advanced keys for HE boards
