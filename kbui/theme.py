@@ -68,7 +68,7 @@ QPushButton#link {{ background: transparent; border: 0; padding: 0; color: {ACCE
 QPushButton#link:hover {{ text-decoration: underline; }}
 QPushButton#seg {{ padding: 5px 10px; }}
 QPushButton#seg:checked {{ color: {ACCENT}; border-color: {ACCENT}; background: {ACCENT_SOFT}; }}
-QPushButton#nav {{ text-align: left; padding: 10px 14px; border: 1px solid {LINE}; border-radius: 8px; color: {TEXT}; }}
+QPushButton#nav {{ text-align: left; padding: 7px 14px; border: 1px solid {LINE}; border-radius: 8px; color: {TEXT}; }}
 QPushButton#nav:checked {{ background: #dfe5ee; border-color: #cfd6e1; font-weight: 600; }}
 QPushButton#config {{ text-align: left; padding: 9px 12px; border-radius: 8px; color: {TEXT}; }}
 QPushButton#config:checked {{ background: {ACCENT_SOFT}; border-color: {ACCENT}; color: {ACCENT}; font-weight: 600; }}

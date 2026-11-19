@@ -19,6 +19,9 @@ allow writes for that model.
 - advanced keys: DKS, multi-point, mod-tap, toggle, END, SOCD, rappy snappy, macros
 - onboard configs 1-4, polling rate, calibration
 - Travel Test: live key depth on a 0-4 mm ruler with the key's actuation point, plus Key Test
+- Key Health: finds keys that read pressed at rest (and could press themselves) or never reach the
+  bottom, and graphs one key's travel at about 500 readings a second with where the keyboard sends
+  press and release
 - Auto Switch: give each game its own onboard config; the keyboard switches when the game comes to
   the front (also from the tray)
 - Presets: battle royale, competitive FPS, racing and typing setups in one click, with an automatic

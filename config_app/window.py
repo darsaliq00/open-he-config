@@ -33,10 +33,11 @@ MACRO_PAGE = -1
 KNOB_PAGE = -2
 BACKUP_PAGE = -3
 AUTO_PAGE = -4
+HEALTH_PAGE = -5
 
 # sidebar sections, in the order RK's web driver shows them, mapped to panel indexes
 SECTIONS = [("Light Setting", 2), ("Performance Setting", 0), ("Custom Key", 1), ("Advanced Key", 3),
-            ("Macro Management", MACRO_PAGE), ("Backup & Presets", BACKUP_PAGE), ("Auto Switch", AUTO_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
+            ("Macro Management", MACRO_PAGE), ("Backup & Presets", BACKUP_PAGE), ("Key Health", HEALTH_PAGE), ("Auto Switch", AUTO_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
 
 
 class KeyEater(QObject):
@@ -112,7 +113,10 @@ class ConfigWindow(QMainWindow):
         from .backuppage import BackupPage
         self.backup_page = BackupPage(self)
         self.pages.addWidget(self.backup_page)
-        self._page_of = {MACRO_PAGE: 1, BACKUP_PAGE: 2}
+        from .healthpage import HealthPage
+        self.health_page = HealthPage(self)
+        self.pages.addWidget(self.health_page)
+        self._page_of = {MACRO_PAGE: 1, BACKUP_PAGE: 2, HEALTH_PAGE: 3}
         scroll.setWidget(self.pages)
         outer.addWidget(scroll, 1)
 
@@ -178,7 +182,7 @@ class ConfigWindow(QMainWindow):
         v.addWidget(c)
 
         c, cv = card()
-        cv.setSpacing(8)
+        cv.setSpacing(6)
         self.nav_group = QButtonGroup(self)
         for i, (name, _) in enumerate(SECTIONS):
             b = QPushButton(name.replace("&", "&&"))   # "&" would mark a shortcut letter
