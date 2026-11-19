@@ -35,7 +35,7 @@ BACKUP_PAGE = -3
 
 # sidebar sections, in the order RK's web driver shows them, mapped to panel indexes
 SECTIONS = [("Light Setting", 2), ("Performance Setting", 0), ("Custom Key", 1), ("Advanced Key", 3),
-            ("Macro Management", MACRO_PAGE), ("Backup", BACKUP_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
+            ("Macro Management", MACRO_PAGE), ("Backup & Presets", BACKUP_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
 
 
 class KeyEater(QObject):

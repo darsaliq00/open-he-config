@@ -19,6 +19,8 @@ allow writes for that model.
 - advanced keys: DKS, multi-point, mod-tap, toggle, END, SOCD, rappy snappy, macros
 - onboard configs 1-4, polling rate, calibration
 - Travel Test: live key depth on a 0-4 mm ruler with the key's actuation point, plus Key Test
+- Presets: battle royale, competitive FPS, racing and typing setups in one click, with an automatic
+  backup of the config first
 - Backup: save one config or all four to a file and load them back (only what differs is
   written, then read back); the same file shares a setup with a friend
 - Macro Management: record macros from the keyboard, rename, copy, delete and edit step delays;

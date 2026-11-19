@@ -1,4 +1,5 @@
-"""Backup page: save the keyboard's configs to a file, load them back, share a setup."""
+"""Backup & Presets page: save the keyboard's configs to a file, load them back, share a setup, and
+apply one-click presets (each preset saves an automatic backup first)."""
 
 import json
 from datetime import datetime
@@ -7,6 +8,7 @@ from pathlib import Path
 from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QInputDialog, QPushButton, QVBoxLayout, QWidget
 
 from app import backup as B
+from app import presets as P
 from app.kbconfig import read_settings
 from app.paths import data_dir
 from kbui.widgets import card, label
@@ -26,7 +28,28 @@ class BackupPage(QWidget):
         v = QVBoxLayout(self)
         v.setContentsMargins(6, 4, 6, 0)
         v.setSpacing(16)
-        v.addWidget(label("Backup", "bigheading"))
+        v.addWidget(label("Backup & Presets", "bigheading"))
+
+        c, cv = card()
+        c.setMaximumWidth(720)
+        cv.addWidget(label("Presets", "heading"))
+        t = label("Set up the current config in one click. An automatic backup is saved first, so you can always "
+                  "go back with Load from file.", "muted")
+        t.setWordWrap(True)
+        cv.addWidget(t)
+        self.preset_buttons = []
+        for pid, preset in P.PRESETS.items():
+            row = QHBoxLayout()
+            b = QPushButton(preset["name"])
+            b.setMinimumWidth(260)
+            b.clicked.connect(lambda _=False, pid=pid: self.apply_preset(pid))
+            self.preset_buttons.append(b)
+            row.addWidget(b)
+            a = label(preset["about"], "note")
+            a.setWordWrap(True)
+            row.addWidget(a, 1)
+            cv.addLayout(row)
+        v.addWidget(c)
 
         c, cv = card()
         c.setMaximumWidth(720)
@@ -132,6 +155,34 @@ class BackupPage(QWidget):
 
         def done(r):
             self._say(f"Failed: {r}" if isinstance(r, Exception) else f"Saved all four configs to {r}")
+            self.win.read(force=True)
+
+        self.win.run(work, done)
+
+    # ---------- presets ----------
+
+    def apply_preset(self, pid: str):
+        if not self._ready():
+            return
+        preset = P.PRESETS[pid]
+        cfg = self.win.settings["system"]["config"] + 1
+        if not self.win.ask(f"Apply \"{preset['name']}\" to config {cfg}?\n\n{preset['about']}\n\n"
+                            "An automatic backup of the config is saved first."):
+            return
+        folder = data_dir() / "backups"
+        folder.mkdir(parents=True, exist_ok=True)
+        path = folder / f"before-{pid}-config{cfg}-{datetime.now():%Y-%m-%d_%H%M%S}.ohe.json"
+        self._say("Saving an automatic backup…")
+
+        def work(req):
+            s = read_settings(req)
+            B.save(path, B.header(s, {str(cfg): B.capture(req, _macro_copies(), s)}))
+            P.apply(req, pid, self._progress)
+            return path
+
+        def done(r):
+            self._say(f"Preset failed: {r}" if isinstance(r, Exception) else
+                      f"{preset['name']} applied to config {cfg}. Backup of the old setup: {r}")
             self.win.read(force=True)
 
         self.win.run(work, done)
