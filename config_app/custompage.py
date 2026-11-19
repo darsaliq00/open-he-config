@@ -7,6 +7,7 @@ The key lists and codes follow RK's web driver.
 """
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QFontMetrics
 from PySide6.QtWidgets import (QButtonGroup, QGridLayout, QHBoxLayout, QPushButton, QStackedWidget,
                                QVBoxLayout, QWidget)
 
@@ -67,6 +68,15 @@ TABS = [("Letter", LETTERS), ("Number Key", NUMBERS), ("Symbolic Key", SYMBOLS),
         ("Combination Key", None)]
 LAYERS = ["fn0", "fn1", "fn2", "fn3"]
 COMBO_MODS = [("CTRL", 1), ("SHIFT", 2), ("WIN", 8), ("ALT", 4)]
+
+
+def text_width(text: str) -> int:
+    """Width of a label in the theme's font. Measured with that font, not the button's own: the
+    button is sized before the window's style sheet (Segoe UI 9.5 pt) reaches it."""
+    f = QFont()
+    f.setFamilies(["Segoe UI"])
+    f.setPointSizeF(9.5)
+    return QFontMetrics(f).horizontalAdvance(text)
 
 
 def name(code: int) -> str:
@@ -137,9 +147,9 @@ class CustomKeyPage(Panel):
         b.setObjectName("keyhold" if code in HOLD_3S else "keybtn")
         b.setFixedHeight(44)
         if wide:
-            b.setFixedWidth(max(60, b.fontMetrics().horizontalAdvance(b.text()) + 30))
+            b.setFixedWidth(max(60, text_width(b.text()) + 34))
         else:
-            b.setFixedWidth(max(50, b.fontMetrics().horizontalAdvance(b.text()) + 26))
+            b.setFixedWidth(max(50, text_width(b.text()) + 30))
         b.clicked.connect(lambda _=False, c=code: self._assign(c))
         return b
 
@@ -197,7 +207,7 @@ class CustomKeyPage(Panel):
             b = QPushButton(name(c))
             b.setObjectName("keybtn")
             b.setCheckable(True)
-            b.setFixedSize(max(50, b.fontMetrics().horizontalAdvance(b.text()) + 26), 44)
+            b.setFixedSize(max(50, text_width(b.text()) + 30), 44)
             self.combo_group.addButton(b, c)
             grid.addWidget(b, i // 12, i % 12)
         h.addLayout(grid)

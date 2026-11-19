@@ -552,6 +552,8 @@ class ConfigWindow(QMainWindow):
         while self.adv_grid.count():
             w = self.adv_grid.takeAt(0).widget()
             if w:
+                w.hide()              # deleteLater runs later; hidden now so old cards never overlap new ones
+                w.setParent(None)
                 w.deleteLater()
         show = isinstance(self.panel, AdvancedPanel)
         self.adv_cards.setVisible(show)
