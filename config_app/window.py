@@ -31,10 +31,11 @@ LIVE_UM = 100       # show the live travel on keys pressed deeper than 0.1 mm
 
 MACRO_PAGE = -1
 KNOB_PAGE = -2
+BACKUP_PAGE = -3
 
 # sidebar sections, in the order RK's web driver shows them, mapped to panel indexes
 SECTIONS = [("Light Setting", 2), ("Performance Setting", 0), ("Custom Key", 1), ("Advanced Key", 3),
-            ("Macro Management", MACRO_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
+            ("Macro Management", MACRO_PAGE), ("Backup", BACKUP_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
 
 
 class KeyEater(QObject):
@@ -107,6 +108,10 @@ class ConfigWindow(QMainWindow):
         self.pages = QStackedWidget()
         self.pages.addWidget(main)
         self.pages.addWidget(self.macro_page)
+        from .backuppage import BackupPage
+        self.backup_page = BackupPage(self)
+        self.pages.addWidget(self.backup_page)
+        self._page_of = {MACRO_PAGE: 1, BACKUP_PAGE: 2}
         scroll.setWidget(self.pages)
         outer.addWidget(scroll, 1)
 
@@ -470,13 +475,11 @@ class ConfigWindow(QMainWindow):
         if self.macro_page.recording and index != MACRO_PAGE:
             self.nav_group.button(self._nav_index()).setChecked(True)
             return
-        if index == MACRO_PAGE:
-            self.pages.setCurrentIndex(1)
+        if index in self._page_of:
+            self.pages.setCurrentIndex(self._page_of[index])
             self.nav_group.button(nav_index).setChecked(True)
             return
-        if index == KNOB_PAGE:
-            if self.pages.count() > 2:
-                self.pages.setCurrentIndex(2)
+        if index == KNOB_PAGE:      # the knob page is attached by the app; nothing to show without it
             self.nav_group.button(nav_index).setChecked(True)
             return
         self.pages.setCurrentIndex(0)
@@ -490,10 +493,10 @@ class ConfigWindow(QMainWindow):
         self.refresh()
 
     def _nav_index(self) -> int:
-        if self.pages.currentIndex() == 1:
-            return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == MACRO_PAGE)
-        if self.pages.currentIndex() == 2:
-            return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == KNOB_PAGE)
+        page = self.pages.currentIndex()
+        for idx, pg in self._page_of.items():
+            if pg == page and page:
+                return next(i for i, (_, x) in enumerate(SECTIONS) if x == idx)
         return next(i for i, (_, idx) in enumerate(SECTIONS) if idx == self.panel_index)
 
     def _set_enabled(self, on: bool):
@@ -506,6 +509,7 @@ class ConfigWindow(QMainWindow):
     def attach_knob_page(self, page):
         """The knob page is owned by the app (it keeps working from the tray)."""
         self.pages.addWidget(page)
+        self._page_of[KNOB_PAGE] = self.pages.count() - 1
 
     # ---------- rendering ----------
 
