@@ -18,6 +18,7 @@ from app.knob import KnobRemapper
 from . import appsettings
 from .autoswitchpage import AutoSwitcher, AutoSwitchPage
 from .knobpage import KnobPage
+from .statspage import StatsPage
 
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 INSTANCE = "OpenHEConfig.SingleInstance"
@@ -65,6 +66,11 @@ def main():
     settings = appsettings.load()
     remapper = KnobRemapper()
     switcher = AutoSwitcher(settings)
+    from app.keystats import KeyCounter
+    from app.paths import data_dir
+    counter = KeyCounter(data_dir() / "key_stats.json")
+    if settings["key_stats"]:
+        counter.start()
     remapper.configure(settings["knob_turn"], settings["knob_press"])
 
     holder = {"window": None, "closer": None}
@@ -78,6 +84,8 @@ def main():
                 w.attach_knob_page(KnobPage(remapper, settings))
                 from .window import AUTO_PAGE
                 w.attach_page(AUTO_PAGE, AutoSwitchPage(switcher, settings))
+                from .window import STATS_PAGE
+                w.attach_page(STATS_PAGE, StatsPage(counter, settings))
                 # the keyboard restarts its link when the config changes; read it again if shown
                 switcher.switched.connect(lambda _c, w=w: w.isVisible() and (w.link.close(), w.read(force=True)),
                                           Qt.QueuedConnection)
@@ -109,6 +117,7 @@ def main():
                 closer.quitting = False
                 return
         remapper.stop()
+        counter.stop()
         tray.hide()
         app.quit()
 
@@ -132,6 +141,7 @@ def main():
         show_window()
     code = app.exec()
     remapper.stop()
+    counter.stop()
     sys.exit(code)
 
 

@@ -7,7 +7,7 @@ import sys
 from app.paths import data_dir
 
 DEFAULTS = {"knob_turn": "volume", "knob_press": "mute", "tray_on_close": True, "start_with_windows": False,
-            "auto_switch": False, "auto_rules": [], "auto_default": 0}
+            "auto_switch": False, "auto_rules": [], "auto_default": 0, "key_stats": False}
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 RUN_NAME = "Open HE Config"
 

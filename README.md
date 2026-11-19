@@ -22,6 +22,8 @@ allow writes for that model.
 - Key Health: finds keys that read pressed at rest (and could press themselves) or never reach the
   bottom, and graphs one key's travel at about 500 readings a second with where the keyboard sends
   press and release
+- Key Stats: a heatmap of how often each key is pressed (off until switched on; only per-key totals
+  are kept, never what you type)
 - Auto Switch: give each game its own onboard config; the keyboard switches when the game comes to
   the front (also from the tray)
 - Presets: battle royale, competitive FPS, racing and typing setups in one click, with an automatic
@@ -90,7 +92,9 @@ from source.
 - `macros.json`: copies of macros put on keys (the keyboard cannot report macro steps back)
 - `macro_library.json`: the Macro Management list
 - `effects.json`: lighting effect choices
-- `app_settings.json`: knob actions, tray and start-with-Windows options
+- `app_settings.json`: knob actions, tray, start-with-Windows and Auto Switch options
+- `key_stats.json`: key press totals for Key Stats
+- `backups\`: automatic backups saved before presets
 - `rk_classic\`: settings for each non-HE board (these boards cannot report their settings)
 
 Everything else (actuation, rapid trigger, remaps, lighting, advanced keys) is stored in the
