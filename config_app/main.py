@@ -8,7 +8,7 @@ the keyboard. `--tray` starts it hidden (used by "Start with Windows").
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QEvent, QObject
+from PySide6.QtCore import QEvent, QObject, Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import QApplication, QDialog, QMenu, QSystemTrayIcon, QVBoxLayout
@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QMenu, QSystemTrayIcon, QVB
 from app.knob import KnobRemapper
 
 from . import appsettings
+from .autoswitchpage import AutoSwitcher, AutoSwitchPage
 from .knobpage import KnobPage
 
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
@@ -63,6 +64,7 @@ def main():
     app.setWindowIcon(icon)
     settings = appsettings.load()
     remapper = KnobRemapper()
+    switcher = AutoSwitcher(settings)
     remapper.configure(settings["knob_turn"], settings["knob_press"])
 
     holder = {"window": None, "closer": None}
@@ -74,6 +76,11 @@ def main():
             w = _pick_window(icon)
             if isinstance(w, ConfigWindow):
                 w.attach_knob_page(KnobPage(remapper, settings))
+                from .window import AUTO_PAGE
+                w.attach_page(AUTO_PAGE, AutoSwitchPage(switcher, settings))
+                # the keyboard restarts its link when the config changes; read it again if shown
+                switcher.switched.connect(lambda _c, w=w: w.isVisible() and (w.link.close(), w.read(force=True)),
+                                          Qt.QueuedConnection)
             holder["closer"] = CloseToTray(w, settings)
             w.installEventFilter(holder["closer"])
             holder["window"] = w

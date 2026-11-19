@@ -32,10 +32,11 @@ LIVE_UM = 100       # show the live travel on keys pressed deeper than 0.1 mm
 MACRO_PAGE = -1
 KNOB_PAGE = -2
 BACKUP_PAGE = -3
+AUTO_PAGE = -4
 
 # sidebar sections, in the order RK's web driver shows them, mapped to panel indexes
 SECTIONS = [("Light Setting", 2), ("Performance Setting", 0), ("Custom Key", 1), ("Advanced Key", 3),
-            ("Macro Management", MACRO_PAGE), ("Backup & Presets", BACKUP_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
+            ("Macro Management", MACRO_PAGE), ("Backup & Presets", BACKUP_PAGE), ("Auto Switch", AUTO_PAGE), ("Knob", KNOB_PAGE), ("System", 4)]
 
 
 class KeyEater(QObject):
@@ -180,7 +181,7 @@ class ConfigWindow(QMainWindow):
         cv.setSpacing(8)
         self.nav_group = QButtonGroup(self)
         for i, (name, _) in enumerate(SECTIONS):
-            b = QPushButton(name)
+            b = QPushButton(name.replace("&", "&&"))   # "&" would mark a shortcut letter
             b.setObjectName("nav")
             b.setCheckable(True)
             self.nav_group.addButton(b, i)
@@ -479,7 +480,7 @@ class ConfigWindow(QMainWindow):
             self.pages.setCurrentIndex(self._page_of[index])
             self.nav_group.button(nav_index).setChecked(True)
             return
-        if index == KNOB_PAGE:      # the knob page is attached by the app; nothing to show without it
+        if index in (KNOB_PAGE, AUTO_PAGE):   # attached by the app; nothing to show without it
             self.nav_group.button(nav_index).setChecked(True)
             return
         self.pages.setCurrentIndex(0)
@@ -503,13 +504,16 @@ class ConfigWindow(QMainWindow):
         self.lower.setEnabled(on)
         for b in (*self.nav_group.buttons(), *self.cfg_group.buttons()):
             b.setEnabled(on)
-        knob = self.nav_group.button(next(i for i, (_, idx) in enumerate(SECTIONS) if idx == KNOB_PAGE))
-        knob.setEnabled(True)   # works without the keyboard
+        for page in (KNOB_PAGE, AUTO_PAGE):     # these work without the keyboard
+            self.nav_group.button(next(i for i, (_, idx) in enumerate(SECTIONS) if idx == page)).setEnabled(True)
 
     def attach_knob_page(self, page):
-        """The knob page is owned by the app (it keeps working from the tray)."""
+        self.attach_page(KNOB_PAGE, page)
+
+    def attach_page(self, section: int, page):
+        """Pages owned by the app (they keep working from the tray): Knob, Auto Switch."""
         self.pages.addWidget(page)
-        self._page_of[KNOB_PAGE] = self.pages.count() - 1
+        self._page_of[section] = self.pages.count() - 1
 
     # ---------- rendering ----------
 

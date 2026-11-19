@@ -1,11 +1,13 @@
-"""App-wide options kept by the app (not the keyboard): knob remap, tray, start with Windows."""
+"""App-wide options kept by the app (not the keyboard): knob remap, tray, start with Windows,
+auto-switching configs per program."""
 
 import json
 import sys
 
 from app.paths import data_dir
 
-DEFAULTS = {"knob_turn": "volume", "knob_press": "mute", "tray_on_close": True, "start_with_windows": False}
+DEFAULTS = {"knob_turn": "volume", "knob_press": "mute", "tray_on_close": True, "start_with_windows": False,
+            "auto_switch": False, "auto_rules": [], "auto_default": 0}
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 RUN_NAME = "Open HE Config"
 
